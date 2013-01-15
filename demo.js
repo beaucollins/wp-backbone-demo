@@ -5,6 +5,9 @@
 		var location = new Location(),
 			button = new ToolbarButton({model:location}),
 			map_box = new MapBox({model:location});
+
+		if( initial_location ) location.set( initial_location );
+		return location;
 	};
 	
 	var Location = demo.Location = Backbone.Model.extend({
@@ -78,6 +81,7 @@
 			this.model.on( 'change', this.render, this );
 			this.locateButton = this.$el.find('[href^=#locate]');
 			this.clearButton = this.$el.find('[href^=#clear]');
+			this.locationField = this.$el.find('input')
 			this.render();
 		},
 		render: function(){
@@ -85,12 +89,21 @@
 				this.map_node = this.make( 'div', {style:'height:400px'}, 'map goes here' );
 				this.$el.prepend( this.map_node );
 				this.map = new google.maps.Map( this.map_node, this.options.mapOptions );
+				this.marker = new google.maps.Marker();
  			};
 			if (this.model.hasLocation()) {
+				var position = this.model.toGoogleLocation();
+				this.locationField.val( JSON.stringify( this.model.toJSON() ) );
 				this.clearButton.show();
-				this.map.setCenter( this.model.toGoogleLocation() );
+				this.map.setCenter( position );
 				this.map.setZoom( 8 );
+				this.marker.setOptions({
+					position: position,
+					map: this.map
+				});
 			} else {
+				this.locationField.val( "" );
+				this.marker.setMap( null );
 				this.clearButton.hide();
 				this.map.setCenter( this.options.mapOptions.center );
 				this.map.setZoom( this.options.mapOptions.zoom );

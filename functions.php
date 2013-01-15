@@ -10,11 +10,13 @@ class Demo {
 
 	const GOOGLE_API_KEY = 'AIzaSyAdqxYNR7gs3t3AZV9fos-ddIZeZVBMCMY';
 	const POST_META_KEY = "demo_lat_lng";
+	const LOCATION_FIELD_NAME = "demo_post_location";
 
 	function admin_init(){
 		add_meta_box( 'demo', __( 'Demo' ), array( $this, 'meta_content' ), 'post' );		
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts') );
 		add_action( 'media_buttons', array( $this, 'toolbar_locate_button' ) );
+		add_action( 'edit_post', array( $this, 'save_post_location' ) );
 	}
 
 	function enqueue_scripts( $hook ){
@@ -27,7 +29,8 @@ class Demo {
 	}
 
 	/**
-	 * Displays a meta box for rendering our map UI
+	 * Displays a meta box for rendering our map UI. Don't use as is, there's
+	 * a secuity hole in the JSON output
 	 *
 	 * @param string $post WordPress post object
 	 * @return void
@@ -40,13 +43,13 @@ class Demo {
 		<div id="demo-map">
 			<a class="button button-large" href="#locate">Update Location</a>
 			<a class="button button-large" href="#clear">Clear Location</a>
-			<input type="hidden" name="<?php echo self::POST_META_KEY; ?>" value=""></input>
+			<input type="hidden" name="<?php echo self::LOCATION_FIELD_NAME; ?>" value=" <?php echo $lat_lng ;?>"></input>
 		</div>
 		<script type="text/javascript">
 		if (window.demo) {
 			jQuery(document).ready(function(){
 				// initializes demo.js
-				window.demo();
+				var location = window.demo( <?php echo $lat_lng; ?> );
 			});
 		};
 		</script>
@@ -61,6 +64,17 @@ class Demo {
 		?>
 		<a class="button" href="#demo-locate-toolbar">Add Location</a>
 		<?php
+	}
+
+	/**
+	 * after a post is saved it stores the demo location in the post meta
+	 *
+	 * @param mixed $post_id
+	 */
+	function save_post_location( $post_id ){
+		if ( array_key_exists( self::LOCATION_FIELD_NAME, $_POST ) ) {
+			update_post_meta( $post_id, self::POST_META_KEY, $_POST[ self::LOCATION_FIELD_NAME ] );
+		}
 	}
 
 }
