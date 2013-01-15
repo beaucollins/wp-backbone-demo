@@ -2,7 +2,8 @@
 
 	var demo = function(){
 		// initialize here
-		var location = new Location();
+		var location = new Location(),
+			button = new ToolbarButton({model:location}),
 			map_box = new MapBox({model:location});
 	};
 	
@@ -26,11 +27,44 @@
 			};
 		}
 	});
-	
+
+	var ToolbarButton = demo.ToolbarButton = Backbone.View.extend({
+		el: '.button[href^=#demo-locate-toolbar]',
+		options: {
+			locateLabel: "Add Location",
+			clearLabel: "Clear Location",
+			locatingLabel: "Locating ..."
+		},
+		events: {
+			'click' : 'updateLocation'
+		},
+		initialize: function(){
+			this.model.on( 'change', this.render, this );
+		},
+		render: function(){
+			if ( this.model.hasLocation() ) {
+				this.$el.text( this.options.clearLabel );
+			} else {
+				this.$el.text( this.options.locateLabel );
+			}
+		},
+		updateLocation: function(e){
+			e.preventDefault();
+			if ( this.model.hasLocation() ) {
+				this.model.unset('location');
+			} else {
+				this.$el.text( this.options.locatingLabel );
+				this.model.findLocation();
+			}
+			return false;
+		}
+	});
+
 	var MapBox = demo.MapBox = Backbone.View.extend({
 		el: '#demo-map',
 		events: {
-			'click a' : 'findLocation',
+			'click a[href^=#locate]' : 'findLocation',
+			'click a[href^=#clear]' : 'clearLocation'
 		},
 		options: {
 			// https://developers.google.com/maps/documentation/javascript/reference#MapOptions
@@ -42,18 +76,30 @@
 		},
 		initialize: function(){
 			this.model.on( 'change', this.render, this );
+			this.locateButton = this.$el.find('[href^=#locate]');
+			this.clearButton = this.$el.find('[href^=#clear]');
 			this.render();
 		},
 		render: function(){
 			if ( !this.map ) {
 				this.map_node = this.make( 'div', {style:'height:400px'}, 'map goes here' );
-				this.$el.find('a').before( this.map_node );
+				this.$el.prepend( this.map_node );
 				this.map = new google.maps.Map( this.map_node, this.options.mapOptions );
  			};
 			if (this.model.hasLocation()) {
+				this.clearButton.show();
 				this.map.setCenter( this.model.toGoogleLocation() );
 				this.map.setZoom( 8 );
-			};
+			} else {
+				this.clearButton.hide();
+				this.map.setCenter( this.options.mapOptions.center );
+				this.map.setZoom( this.options.mapOptions.zoom );
+			}
+		},
+		clearLocation: function(e){
+			e.preventDefault();
+			this.model.unset( 'location' );
+			return false;
 		},
 		findLocation: function( e ){
 			e.preventDefault();

@@ -14,6 +14,7 @@ class Demo {
 	function admin_init(){
 		add_meta_box( 'demo', __( 'Demo' ), array( $this, 'meta_content' ), 'post' );		
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_scripts') );
+		add_action( 'media_buttons', array( $this, 'toolbar_locate_button' ) );
 	}
 
 	function enqueue_scripts( $hook ){
@@ -38,6 +39,7 @@ class Demo {
 		?>
 		<div id="demo-map">
 			<a class="button button-large" href="#locate">Update Location</a>
+			<a class="button button-large" href="#clear">Clear Location</a>
 			<input type="hidden" name="<?php echo self::POST_META_KEY; ?>" value=""></input>
 		</div>
 		<script type="text/javascript">
@@ -48,6 +50,16 @@ class Demo {
 			});
 		};
 		</script>
+		<?php
+	}
+	/**
+	 * A button to render in the toolbar for easy access to updating location.
+	 *
+	 * @return void
+	 */
+	function toolbar_locate_button(){
+		?>
+		<a class="button" href="#demo-locate-toolbar">Add Location</a>
 		<?php
 	}
 
