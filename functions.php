@@ -37,6 +37,7 @@ class Demo {
 		// render some HTML that we can use to display our UI
 		?>
 		<div id="demo-map">
+			<a class="button button-large" href="#locate">Update Location</a>
 			<input type="hidden" name="<?php echo self::POST_META_KEY; ?>" value=""></input>
 		</div>
 		<script type="text/javascript">
