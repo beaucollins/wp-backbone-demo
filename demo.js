@@ -12,6 +12,18 @@
 			if (coords) {
 				return new google.maps.LatLng( coords[0], coords[1] );
 			};
+		},
+		hasLocation: function(){
+			return this.get( 'location' );
+		},
+		updateLocation: function( geolocation ){
+			var coords = geolocation.coords;
+			this.set( 'location', [ coords.latitude, coords.longitude ] );
+		},
+		findLocation: function(){
+			if ( navigator.geolocation ) {
+				navigator.geolocation.getCurrentPosition( _.bind( this.updateLocation, this ) );
+			};
 		}
 	});
 	
@@ -38,21 +50,14 @@
 				this.$el.find('a').before( this.map_node );
 				this.map = new google.maps.Map( this.map_node, this.options.mapOptions );
  			};
-			var location = this.model.toGoogleLocation();
-			if (location) {
-				this.map.setCenter( location );
+			if (this.model.hasLocation()) {
+				this.map.setCenter( this.model.toGoogleLocation() );
 				this.map.setZoom( 8 );
 			};
 		},
-		updateLocation: function( geolocation ){
-			var coords = geolocation.coords;
-			this.model.set( 'location', [ coords.latitude, coords.longitude ] );
-		},
 		findLocation: function( e ){
 			e.preventDefault();
-			if ( navigator.geolocation ) {
-				navigator.geolocation.getCurrentPosition( _.bind( this.updateLocation, this ) );
-			};
+			this.model.findLocation();
 			return false;
 		}
 	});
